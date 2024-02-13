@@ -3,8 +3,8 @@ import App from "./App.vue";
 import router from "./router";
 //引入element组件
 import element from "element-ui";
-//引入axios
-import axios from "axios";
+//引入我们自己封装的axios
+import axios from "./utils/axios";
 
 //把axios交给vue管理
 Vue.prototype.$http = axios;

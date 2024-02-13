@@ -7,23 +7,22 @@
       <div class="box-content">
         <div class="mid">
           <div class="user-input one">
-            <el-input v-model="user.username" placeholder="请输入账号">
-            </el-input>
+            <el-input v-model="userName" placeholder="UserName"> </el-input>
           </div>
           <div class="user-input tow">
             <el-input
-              placeholder="请输入密码"
-              v-model="user.password"
+              placeholder="PassWord"
+              v-model="passWord"
               show-password
             ></el-input>
           </div>
         </div>
         <div class="user-btn">
           <div class="login-btn">
-            <el-button type="primary">登録确认</el-button>
+            <el-button @click="login" type="primary">登録确认</el-button>
           </div>
-          <a id="register" href="JavaScript:">注册</a>
-          <a id="clear" href="JavaScript:">clear</a>
+          <a id="register" href="JavaScript:">新規作成</a>
+          <a id="clear" href="JavaScript:">クリア</a>
         </div>
       </div>
     </div>
@@ -37,14 +36,59 @@ export default {
   data() {
     //代表页面数据
     return {
-      user: {
-        username: "",
-        password: "",
-      },
+      userName: "",
+      passWord: "",
     };
   },
   //代表函数
-  methods: {},
+  methods: {
+    login() {
+      //判断非空
+      //trim()去除空格
+      if (
+        this.userName.trim() == "" ||
+        this.userName == null ||
+        this.userName == undefined
+      ) {
+        this.$message({
+          message: "usernameを入力してください",
+          type: "warning",
+        });
+        return;
+      }
+
+      if (
+        this.passWord.trim() == "" ||
+        this.passWord == null ||
+        this.passWord == undefined
+      ) {
+        this.$message({
+          message: "passwordを入力してください",
+          type: "warning",
+        });
+        return;
+      }
+      //把账密放到一个formdata对象里去方便使用
+      let formDate = new FormData();
+      // key=userName value=data上面的userName的值
+      formDate.append("userName", this.userName);
+      formDate.append("passWord", this.passWord);
+
+      //发送axios请求
+      this.$http
+        .post("/userinfo/login", formDate, {
+          Headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        })
+        .then((res) => {
+          this.$message({
+            message: "登録成功",
+            type: "success",
+          });
+        });
+    },
+  },
 };
 </script>
 

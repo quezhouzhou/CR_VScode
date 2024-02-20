@@ -86,6 +86,7 @@ export default {
             message: "登録成功",
             type: "success",
           });
+          this.$router.push("/showuserall");
         });
     },
   },

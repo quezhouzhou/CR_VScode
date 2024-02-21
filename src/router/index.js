@@ -19,6 +19,11 @@ const routes = [
     name: "ShowUserAll",
     component: () => import("../views/ShowUserAll.vue"),
   },
+  {
+    path: "/register",
+    name: "Register",
+    component: () => import("../views/Register.vue"),
+  },
 ];
 
 const router = new VueRouter({

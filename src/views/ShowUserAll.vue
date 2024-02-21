@@ -1,63 +1,75 @@
 <template>
   <div id="app">
     <div class="search-box">
-      <el-form :inline="true" :model="formInline" class="demo-form-inline">
-        <el-form-item label="id">
-          <el-input v-model="formInline.user" placeholder="请输入id"></el-input>
-        </el-form-item>
-        <el-form-item label="昵称">
+      <el-form :inline="true" :model="conditons" class="demo-form-inline">
+        <el-form-item label="ニックネーム">
           <el-input
-            v-model="formInline.user"
-            placeholder="请输入昵称"
+            v-model="conditons.roleName"
+            placeholder="ニックネームを入力してください"
           ></el-input>
         </el-form-item>
-        <el-form-item label="地址">
-          <el-select v-model="formInline.region" placeholder="选择地址">
-            <el-option label="区域一" value="大阪"></el-option>
-            <el-option label="区域二" value="东京"></el-option>
+        <el-form-item label="日付">
+          <el-date-picker
+            v-model="value1"
+            type="daterange"
+            align="right"
+            unlink-panels
+            range-separator="to"
+            start-placeholder="有効期間開始日"
+            end-placeholder="有効期間終了日"
+          >
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="住所">
+          <el-select
+            v-model="conditons.title"
+            placeholder="都道府県を選択してください"
+          >
+            <el-option label="东京"></el-option>
+            <el-option label="大阪"></el-option>
           </el-select>
         </el-form-item>
+
         <el-form-item>
-          <el-button type="primary" @click="onSubmit">查询</el-button>
+          <el-button type="primary" @click="onSubmit">検索</el-button>
+          <el-button type="primary" @click="clear">クリア</el-button>
         </el-form-item>
       </el-form>
-      <el-date-picker
-        v-model="value2"
-        type="daterange"
-        align="right"
-        unlink-panels
-        range-separator="至"
-        start-placeholder="开始日期"
-        end-placeholder="结束日期"
-        :picker-options="pickerOptions"
-      >
-      </el-date-picker>
     </div>
     <div class="user-box">
       <el-table
-        ref="singleTable"
-        :data="tableData"
+        ref="userList"
+        :data="this.userResult.userList"
         highlight-current-row
-        @select="handleSelectionChange"
+        @selection-change="handleSelectionChange"
         :header-cell-class-name="cellClass"
       >
         <el-table-column type="selection" width="45"></el-table-column>
-        <el-table-column prop="name" label="讲师名称" width="180">
+        <el-table-column type="index" label="ID" width="180"> </el-table-column>
+
+        <el-table-column prop="roleName" label="ニックネーム" width="180">
         </el-table-column>
-        <el-table-column prop="address" label="讲师名称" width="180">
+
+        <el-table-column prop="title" label="住所" width="180">
         </el-table-column>
-        <el-table-column prop="phone" label="讲师名称" width="180">
+
+        <el-table-column prop="tel" label="電話番号" width="180">
         </el-table-column>
-        <el-table-column prop="enddate" label="讲师名称" width="180">
+
+        <el-table-column
+          prop="validPeriodEnd"
+          label="有効期間終了日"
+          width="180"
+        >
         </el-table-column>
-        <el-table-column prop="logindate" label="讲师名称" width="180">
+        <el-table-column prop="updateDate" label="登録年月日" width="180">
         </el-table-column>
       </el-table>
     </div>
     <div style="margin-top: 20px">
-      <el-button @click="1">更新</el-button>
-      <el-button @click="1">详细</el-button>
-      <el-button @click="1">新规作成</el-button>
+      <el-button @click="update">更新</el-button>
+      <el-button @click="Details">详细</el-button>
+      <el-button @click="Signin">新规作成</el-button>
     </div>
   </div>
 </template>
@@ -66,69 +78,69 @@
 export default {
   data() {
     return {
-      formInline: {
-        user: "",
-        region: "",
+      value1: "",
+      conditons: {
+        roleName: " ",
+        title: "",
+        validPeriodEnd: " ",
+        validPeriodStart: " ",
       },
-      tableData: [
-        {
-          date: "2016-05-02",
-          name: "王小虎",
-          address: "上海市普陀区金沙江路 1518 弄",
-          phone: "95+959",
-          enddate: "45646",
-          logindate: "56464",
-        },
-        {
-          date: "2016-05-02",
-          name: "王小虎",
-          address: "上海市普陀区金沙江路 1518 弄",
-          phone: "95+959",
-          enddate: "45646",
-          logindate: "56464",
-        },
-        {
-          date: "2016-05-02",
-          name: "王小虎",
-          address: "上海市普陀区金沙江路 1518 弄",
-          phone: "95+959",
-          enddate: "45646",
-          logindate: "56464",
-        },
-        {
-          date: "2016-05-02",
-          name: "王小虎",
-          address: "上海市普陀区金沙江路 1518 弄",
-          phone: "95+959",
-          enddate: "45646",
-          logindate: "56464",
-        },
-      ],
+      userResult: {
+        userList: [],
+        totalCount: "",
+      },
     };
   },
+
+  created() {
+    this.init();
+  },
+
   methods: {
+    init() {
+      this.$http.post("/showuser/showuserall", this.conditons).then((res) => {
+        console.log(res);
+        this.userResult.userList = res.data.data.list;
+      });
+    },
+    // チェックボックスを隠します
     cellClass(row) {
       if (row.columnIndex === 0) {
         return "disabledCheck";
       }
     },
+
+    //複数のボックスでラジオ効果を実現します。
     handleSelectionChange(val) {
-      // if (val.length > 1) {
-      //   this.$refs.zdxxTab.clearSelection();
-      //   this.$refs.zdxxTab.toggleRowSelection(val[val.length - 1]);
-      // }
-      // this.multipleSelection = val[val.length - 1];
-      // this.tableList.records.forEach((item, index) => {
-      //   if (item.id == this.selectProtocolId) {
-      //     this.$nextTick(() => {
-      //       this.$refs.myTable.toggleRowSelection(item);
-      //     });
-      //   }
-      // });
+      if (val.length > 1) {
+        this.$refs.userList.clearSelection(); //前の消します
+        this.$refs.userList.toggleRowSelection(val.pop()); //pop：最後に選んだの
+      }
+    },
+
+    //入力されたキーワードをクリアする。
+    clear() {
+      this.conditons = {
+        roleName: " ",
+        title: "",
+        validPeriodEnd: " ",
+        validPeriodStart: " ",
+      };
     },
 
     onSubmit() {
-      console.log("submit!");
+      this.init(this.conditons);
+    },
+
+    update() {
+      this.$router.push("/register");
+    },
+
+    Details() {
+      this.$router.push("/register");
+    },
+    Signin() {
+      this.$router.push("/register");
     },
   },
 };

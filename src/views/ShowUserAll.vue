@@ -1,10 +1,10 @@
 <template>
   <div id="app">
     <div class="search-box">
-      <el-form :inline="true" :model="conditons" class="demo-form-inline">
+      <el-form :inline="true" :model="conditions" class="demo-form-inline">
         <el-form-item label="ニックネーム">
           <el-input
-            v-model="conditons.roleName"
+            v-model="conditions.roleName"
             placeholder="ニックネームを入力してください"
           ></el-input>
         </el-form-item>
@@ -21,17 +21,16 @@
           </el-date-picker>
         </el-form-item>
         <el-form-item label="住所">
-          <el-select
-            v-model="conditons.title"
-            placeholder="都道府県を選択してください"
-          >
-            <el-option label="东京"></el-option>
-            <el-option label="大阪"></el-option>
-          </el-select>
+          <el-cascader
+            v-model="value2"
+            :options="addressList"
+            :props="{ value: 'loginId', label: 'title' }"
+            @node-click="initAddressTree"
+          ></el-cascader>
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" @click="onSubmit">検索</el-button>
+          <el-button type="primary" @click="init">検索</el-button>
           <el-button type="primary" @click="clear">クリア</el-button>
         </el-form-item>
       </el-form>
@@ -78,31 +77,50 @@
 export default {
   data() {
     return {
-      value1: "",
-      conditons: {
-        roleName: " ",
+      conditions: {
+        addressId: "",
+        roleName: "",
         title: "",
-        validPeriodEnd: " ",
-        validPeriodStart: " ",
+        validPeriodStart: "",
+        validPeriodEnd: "",
       },
+      value1: "",
+      value2: [],
+
+      addressList: [],
       userResult: {
         userList: [],
-        totalCount: "",
+        totalCount: 0,
       },
     };
   },
 
   created() {
     this.init();
+    this.initAddressTree();
   },
 
   methods: {
     init() {
-      this.$http.post("/showuser/showuserall", this.conditons).then((res) => {
-        console.log(res);
+      if (this.value2 != null) {
+        this.conditions.addressId = this.value2[1];
+        console.log(this.conditions.addressId);
+      }
+      if (this.value1 != null) {
+        this.conditions.validPeriodStart = new Date(this.value1[0]);
+        this.conditions.validPeriodEnd = new Date(this.value1[1]);
+      }
+      this.$http.post("/showuser/showuserall", this.conditions).then((res) => {
         this.userResult.userList = res.data.data.list;
       });
     },
+
+    initAddressTree() {
+      this.$http.get("/addreeeTree/showAddressTree").then((res) => {
+        this.addressList = res.data.data;
+      });
+    },
+
     // チェックボックスを隠します
     cellClass(row) {
       if (row.columnIndex === 0) {
@@ -120,16 +138,12 @@ export default {
 
     //入力されたキーワードをクリアする。
     clear() {
-      this.conditons = {
+      this.conditions = {
         roleName: " ",
         title: "",
         validPeriodEnd: " ",
         validPeriodStart: " ",
       };
-    },
-
-    onSubmit() {
-      this.init(this.conditons);
     },
 
     update() {
